@@ -1,47 +1,104 @@
-# RepoPilot 🚀
+# RepoPilot
 
 **Turn any repository into a navigable intelligence layer for new developers.**
 
-RepoPilot reduces codebase ramp-up time from days to hours by providing an interactive explorer, dependency mapping, and AI-powered insights.
+RepoPilot reduces codebase ramp-up time from days to hours by providing an interactive explorer, dependency mapping, and code analysis - all completely free, no API keys required.
+
+---
+
+## Quick Start
+
+```bash
+# Clone or download RepoPilot
+cd RepoPilot
+
+# Install dependencies
+pip install -r analysis-engine/requirements.txt
+
+# Run the Streamlit dashboard
+streamlit run app.py
+
+# Open browser to http://localhost:8501
+```
+
+**That's it!** No API keys, no paid services. Works completely offline.
 
 ---
 
 ## Problem Statement
 
 New engineers joining codebases waste **1-2 weeks** understanding:
-- Project structure & organization
-- Module dependencies & relationships  
+- Project structure and organization
+- Module dependencies and relationships  
 - Where critical business logic lives
-- How to run/test locally
+- How to run and test locally
 
-**RepoPilot solves this** with an instant, AI-enhanced codebase intelligence layer.
+**RepoPilot solves this** with instant, free codebase intelligence using local analysis (no AI services required).
 
 ---
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    FRONTEND (React)                      │
-│  - File Explorer | Code Viewer | Dependency Graph       │
-│  - Search | Q&A Interface | Repository Selector         │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│                   BACKEND (Node.js)                      │
-│  - GitHub API Integration | File Storage                 │
-│  - Analysis Orchestration | LLM API Calls               │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│            ANALYSIS ENGINE (Python/Node)                 │
-│  - Repo Parser | Dependency Graph Generator             │
-│  - Hot Spot Identification | Key File Detection         │
-│  - Summarization & Context Extraction                   │
-└─────────────────────────────────────────────────────────┘
+---
+
+## Architecture
+
+**Current Phase 1 - Free Analysis Engine:**
 ```
+Streamlit Dashboard (app.py)
+        ↓
+Analysis Engine (Python)
+  ├─ parser.py          (Parse repository structure)
+  ├─ dependency_mapper  (Map code dependencies)
+  └─ summarizer        (Generate summaries - no APIs)
+        ↓
+JSON Analysis Results
+```
+
+**Future Phases:**
+- Phase 2: REST API backend (Node.js)
+- Phase 3: React web UI  
+- Phase 4: GitHub integration
+
+---
+
+## Features
+
+Current (Free, No API Keys):
+- [x] Repository structure analysis
+- [x] Language detection
+- [x] Dependency graph mapping
+- [x] Key file identification
+- [x] Streamlit dashboard UI
+- [x] Local file processing
+- [x] Zero-cost operation
+
+Future Phases:
+- [ ] GitHub repository browser
+- [ ] Interactive dependency visualization
+- [ ] Code search and navigation
+- [ ] Hot spot identification
+- [ ] Project-wide Q&A
+- [ ] Multiple language support
+
+---
+
+## Supported Languages
+
+Automatic detection and analysis for:
+- Python
+- JavaScript / TypeScript
+- Java
+- Go
+- Rust
+- C / C++
+- SQL
+- HTML / CSS
+- YAML
+- JSON
+- Markdown
+- Shell/Bash
 
 ---
 
@@ -49,36 +106,98 @@ New engineers joining codebases waste **1-2 weeks** understanding:
 
 ```
 RepoPilot/
-├── frontend/                 # React + TypeScript
-│   ├── src/
-│   │   ├── components/       # UI Components
-│   │   ├── pages/           # Page components
-│   │   ├── services/        # API calls
-│   │   └── App.tsx
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── backend/                  # Node.js Express
-│   ├── src/
-│   │   ├── routes/          # API endpoints
-│   │   ├── controllers/     # Business logic
-│   │   ├── services/        # External integrations
-│   │   └── index.ts
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── analysis-engine/          # Analysis core
+├── app.py                    # Streamlit dashboard
+├── analysis-engine/
 │   ├── parser.py            # File structure parser
-│   ├── dependency_mapper.py  # Dependency graph
-│   ├── summarizer.py        # AI summarization
-│   └── requirements.txt
-│
-└── README.md
+│   ├── dependency_mapper.py  # Dependency analysis
+│   ├── summarizer.py        # File summarization
+│   ├── main.py              # CLI interface
+│   ├── requirements.txt      # Python dependencies
+│   └── tests/               # Unit tests
+├── .streamlit/              # Streamlit config
+│   └── config.toml
+├── DEPLOYMENT.md            # Free deployment guide
+├── README.md                # This file
+└── Other project files
+
+Future:
+├── frontend/                # React UI (Phase 3)
+├── backend/                 # Node.js API (Phase 2)
+└── docs/                    # Documentation
 ```
 
 ---
 
-## Tech Stack
+## Installation & Setup
+
+### Local Development
+
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd RepoPilot
+
+# 2. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r analysis-engine/requirements.txt
+
+# 4. Run dashboard
+streamlit run app.py
+
+# 5. Open http://localhost:8501
+```
+
+### Run CLI Analysis
+
+```bash
+cd analysis-engine
+python main.py /path/to/repo output.json
+```
+
+### Run Tests
+
+```bash
+cd analysis-engine
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+---
+
+## Free Deployment Options
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete guide.
+
+### Option 1: Streamlit Cloud (Recommended)
+- Free tier includes:
+  - Auto-deploy from GitHub
+  - Custom domains
+  - 1GB disk space
+  - 48 core-hours/month
+  - Public sharing
+
+Visit: https://streamlit.io/cloud
+
+### Option 2: Replit
+- Free accounts
+- Auto-deploy
+- One-click deployment
+
+Visit: https://replit.com
+
+### Option 3: Railway.app
+- Free tier
+- GitHub integration
+- Auto-scaling
+
+Visit: https://railway.app
+
+---
+
+## Roadmap
+````
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, D3.js
 - **Backend**: Node.js, Express, TypeScript

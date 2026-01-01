@@ -1,0 +1,445 @@
+{
+  "metadata": {
+    "repository": ".",
+    "path": ".",
+    "timestamp": "1767292050.6577525"
+  },
+  "structure": {
+    "total_files": 33,
+    "total_directories": 7,
+    "files": [
+      {
+        "path": "ARCHITECTURE.md",
+        "name": "ARCHITECTURE.md",
+        "size": 13094,
+        "type": "file",
+        "language": "markdown",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis_output.json",
+        "name": "analysis_output.json",
+        "size": 8931,
+        "type": "file",
+        "language": "json",
+        "is_key_file": false
+      },
+      {
+        "path": "PROJECT_TRACKER.md",
+        "name": "PROJECT_TRACKER.md",
+        "size": 7285,
+        "type": "file",
+        "language": "markdown",
+        "is_key_file": false
+      },
+      {
+        "path": "frontend",
+        "name": "frontend",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/public",
+        "name": "public",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/public/index.html",
+        "name": "index.html",
+        "size": 482,
+        "type": "file",
+        "language": "html",
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/package.json",
+        "name": "package.json",
+        "size": 1009,
+        "type": "file",
+        "language": "json",
+        "is_key_file": true
+      },
+      {
+        "path": "frontend/tsconfig.json",
+        "name": "tsconfig.json",
+        "size": 510,
+        "type": "file",
+        "language": "json",
+        "is_key_file": true
+      },
+      {
+        "path": "frontend/src",
+        "name": "src",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/src/index.tsx",
+        "name": "index.tsx",
+        "size": 273,
+        "type": "file",
+        "language": "typescript",
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/src/App.tsx",
+        "name": "App.tsx",
+        "size": 531,
+        "type": "file",
+        "language": "typescript",
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/src/App.css",
+        "name": "App.css",
+        "size": 293,
+        "type": "file",
+        "language": "css",
+        "is_key_file": false
+      },
+      {
+        "path": "frontend/src/index.css",
+        "name": "index.css",
+        "size": 442,
+        "type": "file",
+        "language": "css",
+        "is_key_file": false
+      },
+      {
+        "path": "QUICKSTART.md",
+        "name": "QUICKSTART.md",
+        "size": 6672,
+        "type": "file",
+        "language": "markdown",
+        "is_key_file": false
+      },
+      {
+        "path": "backend",
+        "name": "backend",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "backend/package.json",
+        "name": "package.json",
+        "size": 861,
+        "type": "file",
+        "language": "json",
+        "is_key_file": true
+      },
+      {
+        "path": "backend/tsconfig.json",
+        "name": "tsconfig.json",
+        "size": 393,
+        "type": "file",
+        "language": "json",
+        "is_key_file": true
+      },
+      {
+        "path": "backend/src",
+        "name": "src",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "backend/src/index.ts",
+        "name": "index.ts",
+        "size": 715,
+        "type": "file",
+        "language": "typescript",
+        "is_key_file": false
+      },
+      {
+        "path": "README.md",
+        "name": "README.md",
+        "size": 5911,
+        "type": "file",
+        "language": "markdown",
+        "is_key_file": true
+      },
+      {
+        "path": "GITHUB_SETUP.md",
+        "name": "GITHUB_SETUP.md",
+        "size": 6420,
+        "type": "file",
+        "language": "markdown",
+        "is_key_file": false
+      },
+      {
+        "path": "SETUP_SUMMARY.md",
+        "name": "SETUP_SUMMARY.md",
+        "size": 10248,
+        "type": "file",
+        "language": "markdown",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine",
+        "name": "analysis-engine",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/dependency_mapper.py",
+        "name": "dependency_mapper.py",
+        "size": 3763,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/requirements.txt",
+        "name": "requirements.txt",
+        "size": 70,
+        "type": "file",
+        "language": "unknown",
+        "is_key_file": true
+      },
+      {
+        "path": "analysis-engine/tests",
+        "name": "tests",
+        "size": 0,
+        "type": "directory",
+        "language": null,
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/tests/test_parser.py",
+        "name": "test_parser.py",
+        "size": 3950,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/tests/test_summarizer.py",
+        "name": "test_summarizer.py",
+        "size": 3111,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/tests/__init__.py",
+        "name": "__init__.py",
+        "size": 33,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/tests/test_dependency_mapper.py",
+        "name": "test_dependency_mapper.py",
+        "size": 3772,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/parser.py",
+        "name": "parser.py",
+        "size": 5479,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/summarizer.py",
+        "name": "summarizer.py",
+        "size": 7262,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      },
+      {
+        "path": "analysis-engine/main.py",
+        "name": "main.py",
+        "size": 4468,
+        "type": "file",
+        "language": "python",
+        "is_key_file": false
+      }
+    ],
+    "key_files": [
+      "frontend/package.json",
+      "frontend/tsconfig.json",
+      "backend/package.json",
+      "backend/tsconfig.json",
+      "README.md",
+      "analysis-engine/requirements.txt"
+    ],
+    "languages": {
+      "markdown": 6,
+      "json": 5,
+      "html": 1,
+      "typescript": 3,
+      "css": 2,
+      "python": 8
+    }
+  },
+  "dependencies": {
+    "nodes": [
+      "ARCHITECTURE.md",
+      "analysis_output.json",
+      "PROJECT_TRACKER.md",
+      "frontend/public/index.html",
+      "frontend/package.json",
+      "frontend/tsconfig.json",
+      "frontend/src/index.tsx",
+      "frontend/src/App.tsx",
+      "frontend/src/App.css",
+      "frontend/src/index.css",
+      "QUICKSTART.md",
+      "backend/package.json",
+      "backend/tsconfig.json",
+      "backend/src/index.ts",
+      "README.md",
+      "GITHUB_SETUP.md",
+      "SETUP_SUMMARY.md",
+      "analysis-engine/dependency_mapper.py",
+      "analysis-engine/requirements.txt",
+      "analysis-engine/tests/test_parser.py",
+      "analysis-engine/tests/test_summarizer.py",
+      "analysis-engine/tests/__init__.py",
+      "analysis-engine/tests/test_dependency_mapper.py",
+      "analysis-engine/parser.py",
+      "analysis-engine/summarizer.py",
+      "analysis-engine/main.py"
+    ],
+    "edges": [],
+    "dependencies": {
+      "ARCHITECTURE.md": [],
+      "analysis_output.json": [],
+      "PROJECT_TRACKER.md": [],
+      "frontend/public/index.html": [],
+      "frontend/package.json": [],
+      "frontend/tsconfig.json": [],
+      "frontend/src/index.tsx": [
+        "react",
+        "./index.css",
+        "./App",
+        "react-dom/client"
+      ],
+      "frontend/src/App.tsx": [
+        "react",
+        "./App.css"
+      ],
+      "frontend/src/App.css": [],
+      "frontend/src/index.css": [],
+      "QUICKSTART.md": [],
+      "backend/package.json": [],
+      "backend/tsconfig.json": [],
+      "backend/src/index.ts": [
+        "dotenv",
+        "express",
+        "cors"
+      ],
+      "README.md": [],
+      "GITHUB_SETUP.md": [],
+      "SETUP_SUMMARY.md": [],
+      "analysis-engine/dependency_mapper.py": [
+        "networkx",
+        "json",
+        "re",
+        "typing",
+        "pathlib"
+      ],
+      "analysis-engine/requirements.txt": [],
+      "analysis-engine/tests/test_parser.py": [
+        "unittest",
+        "tempfile",
+        "parser",
+        "json",
+        "shutil",
+        "os",
+        "pathlib"
+      ],
+      "analysis-engine/tests/test_summarizer.py": [
+        "unittest",
+        "os",
+        "summarizer"
+      ],
+      "analysis-engine/tests/__init__.py": [],
+      "analysis-engine/tests/test_dependency_mapper.py": [
+        "unittest",
+        "tempfile",
+        "dependency_mapper",
+        "shutil",
+        "pathlib"
+      ],
+      "analysis-engine/parser.py": [
+        "json",
+        "pathlib",
+        "os",
+        "typing",
+        "dataclasses"
+      ],
+      "analysis-engine/summarizer.py": [
+        "typing",
+        "os",
+        "pathlib"
+      ],
+      "analysis-engine/main.py": [
+        "dotenv",
+        "parser",
+        "json",
+        "dependency_mapper",
+        "sys",
+        "os",
+        "typing",
+        "summarizer",
+        "pathlib"
+      ]
+    },
+    "complexity_metrics": {
+      "total_nodes": 26,
+      "total_edges": 0,
+      "density": 0,
+      "most_connected": [
+        "ARCHITECTURE.md",
+        "analysis_output.json",
+        "PROJECT_TRACKER.md",
+        "frontend/public/index.html",
+        "frontend/package.json",
+        "frontend/tsconfig.json",
+        "frontend/src/index.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/App.css",
+        "frontend/src/index.css"
+      ]
+    }
+  },
+  "summary": {
+    "overview": "\nRepository Overview\n===================\nTotal Files: 33\nPrimary Language: python\n\nProject Type: General project\n\nTech Stack:\n  - python (8 files)\n  - markdown (6 files)\n  - json (5 files)\n\nKey Files to Examine:\n  - frontend/package.json\n  - frontend/tsconfig.json\n  - backend/package.json\n  - backend/tsconfig.json\n  - README.md\n",
+    "key_files": [
+      "frontend/package.json",
+      "frontend/tsconfig.json",
+      "backend/package.json",
+      "backend/tsconfig.json",
+      "README.md",
+      "analysis-engine/requirements.txt"
+    ],
+    "languages": {
+      "markdown": 6,
+      "json": 5,
+      "html": 1,
+      "typescript": 3,
+      "css": 2,
+      "python": 8
+    },
+    "total_files": 33
+  }
+}

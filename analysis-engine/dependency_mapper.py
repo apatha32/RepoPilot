@@ -58,7 +58,7 @@ class DependencyMapper:
         return {
             'nodes': list(self.graph.nodes()),
             'edges': [{'source': u, 'target': v} for u, v in self.graph.edges()],
-            'dependencies': dependencies,
+            'dependencies': {k: list(v) for k, v in dependencies.items()},
             'complexity_metrics': self._calculate_metrics(),
         }
     

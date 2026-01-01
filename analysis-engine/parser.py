@@ -33,6 +33,10 @@ class RepositoryParser:
         'sql': ['.sql'],
         'json': ['.json'],
         'yaml': ['.yml', '.yaml'],
+        'markdown': ['.md', '.markdown'],
+        'html': ['.html', '.htm'],
+        'css': ['.css', '.scss', '.less'],
+        'shell': ['.sh', '.bash'],
     }
     
     # Key files to identify
@@ -117,6 +121,29 @@ class RepositoryParser:
             if file_info.type == 'file' and file_info.language != 'unknown':
                 lang_count[file_info.language] = lang_count.get(file_info.language, 0) + 1
         return lang_count
+    
+    def get_file_by_path(self, path: str) -> FileInfo:
+        """Get file information by path"""
+        for file_info in self.files:
+            if file_info.path == path:
+                return file_info
+        return None
+    
+    def get_files_by_language(self, language: str) -> list:
+        """Get all files of a specific language"""
+        return [f for f in self.files if f.language == language]
+    
+    def get_directory_tree(self, path: str = '', indent: int = 0) -> str:
+        """Get formatted directory tree"""
+        tree = ""
+        for file_info in sorted(self.files):
+            if file_info.path.startswith(path):
+                level = file_info.path.count(os.sep)
+                if file_info.type == 'directory':
+                    tree += "  " * level + f"[DIR] {file_info.name}/\n"
+                else:
+                    tree += "  " * level + f"[FILE] {file_info.name}\n"
+        return tree
 
 
 if __name__ == '__main__':
