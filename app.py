@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'analysis-engine'))
 from parser import RepositoryParser
 from dependency_mapper import DependencyMapper
 from summarizer import Summarizer
+from clustering import CodeClusterer
 import networkx as nx
 
 # Page configuration
@@ -69,14 +70,20 @@ def run_analysis(path):
         mapper = DependencyMapper(path, structure['files'])
         dependencies = mapper.build_dependency_graph()
         
-        # Step 3: Generate summaries
-        status_text.text("Step 3: Generating summaries...")
-        progress_bar.progress(60)
+        # Step 3: Perform code clustering
+        status_text.text("Step 3: Analyzing architectural patterns...")
+        progress_bar.progress(55)
+        clusterer = CodeClusterer()
+        clustering = clusterer.cluster_files(structure['files'], n_clusters=min(4, max(2, len(structure['files']) // 3)))
+        
+        # Step 4: Generate summaries
+        status_text.text("Step 4: Generating summaries...")
+        progress_bar.progress(70)
         summarizer = Summarizer()
         
         # Create results dictionary
-        status_text.text("Step 4: Compiling results...")
-        progress_bar.progress(80)
+        status_text.text("Step 5: Compiling results...")
+        progress_bar.progress(85)
         
         results = {
             'metadata': {
@@ -85,6 +92,7 @@ def run_analysis(path):
             },
             'structure': structure,
             'dependencies': dependencies,
+            'clustering': clustering,
             'summaries': {
                 'overview': summarizer.generate_repo_overview(structure, structure['key_files']),
             }
@@ -112,8 +120,8 @@ if run_button:
 
 if results:
     # Display results in tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Overview", "Structure", "Dependencies", "Files", "Configuration"]
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+        ["Overview", "Structure", "Dependencies", "Architecture Patterns", "Files", "Configuration"]
     )
     
     # TAB 1: Overview
@@ -195,8 +203,63 @@ if results:
             'note': 'Showing first 10 items'
         })
     
-    # TAB 4: Files
+    # TAB 4: Architecture Patterns (NEW)
     with tab4:
+        st.subheader("Architectural Patterns")
+        st.markdown("Machine learning-based code clustering identifies architectural patterns in your repository.")
+        
+        clustering = results['clustering']
+        
+        # Display clustering method
+        method = clustering.get('method', 'KMeans Clustering')
+        st.info(f"Detection Method: {method}")
+        
+        # Display architecture summary
+        st.markdown("---")
+        st.write("**Architecture Summary:**")
+        summary = clustering.get('summary', 'Unable to generate summary')
+        st.write(summary)
+        
+        st.markdown("---")
+        
+        # Display pattern breakdown
+        st.write("**Identified Patterns:**")
+        patterns = clustering.get('patterns', {})
+        
+        if patterns:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Pattern Categories:**")
+                for pattern_id, pattern_name in patterns.items():
+                    st.write(f"- **{pattern_name}**")
+            
+            with col2:
+                st.write("**Files by Pattern:**")
+                clusters = clustering.get('clusters', {})
+                for cluster_id, files in clusters.items():
+                    pattern_name = patterns.get(str(cluster_id), f"Cluster {cluster_id}")
+                    st.write(f"**{pattern_name}:** {len(files)} files")
+        else:
+            st.info("No patterns identified (repository may be too small)")
+        
+        st.markdown("---")
+        st.write("**Detailed File Groupings:**")
+        
+        clusters = clustering.get('clusters', {})
+        if clusters:
+            for cluster_id, files in clusters.items():
+                pattern_name = patterns.get(str(cluster_id), f"Cluster {cluster_id}")
+                with st.expander(f"{pattern_name} ({len(files)} files)"):
+                    for file in sorted(files)[:20]:  # Show first 20 files
+                        st.write(f"- {file}")
+                    if len(files) > 20:
+                        st.caption(f"... and {len(files) - 20} more files")
+        else:
+            st.info("No file clusters generated")
+    
+    # TAB 5: Files
+    with tab5:
         st.subheader("File Listing")
         
         # Filter by language
@@ -238,8 +301,8 @@ if results:
             if len(display_files) > 50:
                 st.info(f"Showing first 50 of {len(display_files)} files")
     
-    # TAB 5: Configuration
-    with tab5:
+    # TAB 6: Configuration
+    with tab6:
         st.subheader("Key Configuration Files")
         
         key_files = results['structure']['key_files']
