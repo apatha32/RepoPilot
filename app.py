@@ -6,7 +6,12 @@ Free, open-source, deployable on Streamlit Cloud
 import streamlit as st
 import json
 import os
+import sys
 from pathlib import Path
+
+# Add analysis-engine to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'analysis-engine'))
+
 from parser import RepositoryParser
 from dependency_mapper import DependencyMapper
 from summarizer import Summarizer
