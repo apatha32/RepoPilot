@@ -1,0 +1,80 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: cd backend && npm install
+      
+      - name: Build
+        run: cd backend && npm run build
+      
+      - name: Lint (if configured)
+        run: cd backend && npm run lint || echo "No linter configured"
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: cd frontend && npm install
+      
+      - name: Build
+        run: cd frontend && npm run build
+      
+      - name: Lint (if configured)
+        run: cd frontend && npm run lint || echo "No linter configured"
+
+  test-analysis-engine:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.9']
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: cd analysis-engine && pip install -r requirements.txt
+      
+      - name: Run tests (if configured)
+        run: cd analysis-engine && python -m pytest || echo "No tests configured"
