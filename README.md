@@ -44,17 +44,25 @@ New engineers joining codebases waste **1-2 weeks** understanding:
 
 ## Architecture
 
-**Current Phase 1 - Free Analysis Engine:**
+**Current Phase 1 - Free Analysis Engine with ML Clustering:**
 ```
 Streamlit Dashboard (app.py)
         ↓
 Analysis Engine (Python)
-  ├─ parser.py          (Parse repository structure)
-  ├─ dependency_mapper  (Map code dependencies)
-  └─ summarizer        (Generate summaries - no APIs)
+  ├─ parser.py              (Parse repository structure)
+  ├─ dependency_mapper.py   (Map code dependencies)
+  ├─ summarizer.py          (Generate summaries - no APIs)
+  └─ clustering.py          (ML-based pattern identification)
         ↓
-JSON Analysis Results
+JSON Analysis Results with Architectural Patterns
 ```
+
+**ML Clustering Details:**
+- Uses scikit-learn KMeans for unsupervised learning
+- Extracts 6 code features: imports, functions, classes, file size, test/config flags, directory depth
+- Identifies 4 architectural patterns: Configuration, Testing, Utilities, Core Logic
+- Fallback heuristic clustering if sklearn unavailable
+- 7 comprehensive unit tests (100% pass rate)
 
 **Future Phases:**
 - Phase 2: REST API backend (Node.js)
@@ -70,6 +78,8 @@ Current (Free, No API Keys):
 - [x] Language detection
 - [x] Dependency graph mapping
 - [x] Key file identification
+- [x] ML-based code clustering (scikit-learn KMeans)
+- [x] Architectural pattern identification
 - [x] Streamlit dashboard UI
 - [x] Local file processing
 - [x] Zero-cost operation
@@ -111,12 +121,14 @@ RepoPilot/
 │   ├── parser.py            # File structure parser
 │   ├── dependency_mapper.py  # Dependency analysis
 │   ├── summarizer.py        # File summarization
+│   ├── clustering.py        # ML-based pattern identification (scikit-learn)
 │   ├── main.py              # CLI interface
 │   ├── requirements.txt      # Python dependencies
-│   └── tests/               # Unit tests
+│   └── tests/               # Unit tests (23 total, 100% pass)
 ├── .streamlit/              # Streamlit config
 │   └── config.toml
 ├── DEPLOYMENT.md            # Free deployment guide
+├── ML_CLUSTERING.md         # ML clustering documentation
 ├── README.md                # This file
 └── Other project files
 
@@ -149,6 +161,41 @@ streamlit run app.py
 
 # 5. Open http://localhost:8501
 ```
+
+### Dashboard Tabs
+
+The Streamlit dashboard provides 6 interactive analysis tabs:
+
+1. **Overview** - High-level repository statistics
+   - Total files and directories
+   - Primary programming language
+   - Quick metrics summary
+
+2. **Structure** - Repository organization
+   - Directory hierarchy visualization
+   - Language distribution chart
+   - Breakdown of files by language
+
+3. **Dependencies** - Code relationship analysis
+   - Dependency graph metrics (nodes, edges, density)
+   - Most connected files (hot spots)
+   - Raw dependency graph data
+
+4. **Architecture Patterns** (NEW) - ML-based architectural analysis
+   - ML clustering results (KMeans from scikit-learn)
+   - Identified architectural patterns
+   - File groupings by pattern type
+   - Pattern descriptions and statistics
+
+5. **Files** - Detailed file listing
+   - Searchable/filterable file table
+   - Language selection filter
+   - File metadata (path, language, size, key file flag)
+
+6. **Configuration** - Key files and settings
+   - Identified key configuration files
+   - Common config file descriptions
+   - Raw analysis data (JSON export)
 
 ### Run CLI Analysis
 
@@ -211,10 +258,15 @@ Visit: https://railway.app
 ## MVP Roadmap
 
 ### Phase 1: Analysis Engine ✨
-- [ ] Parse repo structure
-- [ ] Generate dependency graph
-- [ ] Identify key files
-- [ ] Extract file metrics
+- [x] Parse repo structure
+- [x] Generate dependency graph
+- [x] Identify key files
+- [x] Extract file metrics
+- [x] Streamlit dashboard UI
+- [x] ML-based code clustering (scikit-learn KMeans)
+- [x] Architectural pattern identification
+- [x] 23 unit tests (100% pass rate)
+- [x] Deploy to Streamlit Cloud (free)
 
 ### Phase 2: Backend API
 - [ ] GitHub integration
