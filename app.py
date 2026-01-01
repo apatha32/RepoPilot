@@ -15,7 +15,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'analysis-engine'))
 from parser import RepositoryParser
 from dependency_mapper import DependencyMapper
 from summarizer import Summarizer
-from clustering import CodeClusterer
+
+# Try to import clustering (optional - gracefully falls back if ML dependencies unavailable)
+try:
+    from clustering import CodeClusterer
+    clustering_available = True
+except (ImportError, ModuleNotFoundError):
+    clustering_available = False
+    
 import networkx as nx
 
 # Page configuration
@@ -70,11 +77,18 @@ def run_analysis(path):
         mapper = DependencyMapper(path, structure['files'])
         dependencies = mapper.build_dependency_graph()
         
-        # Step 3: Perform code clustering
-        status_text.text("Step 3: Analyzing architectural patterns...")
-        progress_bar.progress(55)
-        clusterer = CodeClusterer()
-        clustering = clusterer.cluster_files(structure['files'], n_clusters=min(4, max(2, len(structure['files']) // 3)))
+        # Step 3: Perform code clustering (if ML libraries available)
+        clustering = None
+        if clustering_available:
+            status_text.text("Step 3: Analyzing architectural patterns...")
+            progress_bar.progress(55)
+            try:
+                clusterer = CodeClusterer()
+                clustering = clusterer.cluster_files(structure['files'], n_clusters=min(4, max(2, len(structure['files']) // 3)))
+            except Exception as e:
+                # Gracefully continue without clustering if it fails
+                st.warning(f"Architectural pattern analysis unavailable: {str(e)}")
+                clustering = None
         
         # Step 4: Generate summaries
         status_text.text("Step 4: Generating summaries...")
@@ -119,10 +133,16 @@ if run_button:
     results = run_analysis(repo_path)
 
 if results:
-    # Display results in tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-        ["Overview", "Structure", "Dependencies", "Architecture Patterns", "Files", "Configuration"]
-    )
+    # Display results in tabs (conditionally include Architecture Patterns tab)
+    if clustering_available and results.get('clustering'):
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+            ["Overview", "Structure", "Dependencies", "Architecture Patterns", "Files", "Configuration"]
+        )
+    else:
+        tab1, tab2, tab3, tab5, tab6 = st.tabs(
+            ["Overview", "Structure", "Dependencies", "Files", "Configuration"]
+        )
+        tab4 = None  # No architecture patterns tab
     
     # TAB 1: Overview
     with tab1:
@@ -203,60 +223,61 @@ if results:
             'note': 'Showing first 10 items'
         })
     
-    # TAB 4: Architecture Patterns (NEW)
-    with tab4:
-        st.subheader("Architectural Patterns")
-        st.markdown("Machine learning-based code clustering identifies architectural patterns in your repository.")
-        
-        clustering = results['clustering']
-        
-        # Display clustering method
-        method = clustering.get('method', 'KMeans Clustering')
-        st.info(f"Detection Method: {method}")
-        
-        # Display architecture summary
-        st.markdown("---")
-        st.write("**Architecture Summary:**")
-        summary = clustering.get('summary', 'Unable to generate summary')
-        st.write(summary)
-        
-        st.markdown("---")
-        
-        # Display pattern breakdown
-        st.write("**Identified Patterns:**")
-        patterns = clustering.get('patterns', {})
-        
-        if patterns:
-            col1, col2 = st.columns(2)
+    # TAB 4: Architecture Patterns (only if clustering available)
+    if tab4 is not None and clustering_available and results.get('clustering'):
+        with tab4:
+            st.subheader("Architectural Patterns")
+            st.markdown("Machine learning-based code clustering identifies architectural patterns in your repository.")
             
-            with col1:
-                st.write("**Pattern Categories:**")
-                for pattern_id, pattern_name in patterns.items():
-                    st.write(f"- **{pattern_name}**")
+            clustering = results['clustering']
             
-            with col2:
-                st.write("**Files by Pattern:**")
-                clusters = clustering.get('clusters', {})
+            # Display clustering method
+            method = clustering.get('method', 'KMeans Clustering')
+            st.info(f"Detection Method: {method}")
+            
+            # Display architecture summary
+            st.markdown("---")
+            st.write("**Architecture Summary:**")
+            summary = clustering.get('summary', 'Unable to generate summary')
+            st.write(summary)
+            
+            st.markdown("---")
+            
+            # Display pattern breakdown
+            st.write("**Identified Patterns:**")
+            patterns = clustering.get('patterns', {})
+            
+            if patterns:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write("**Pattern Categories:**")
+                    for pattern_id, pattern_name in patterns.items():
+                        st.write(f"- **{pattern_name}**")
+                
+                with col2:
+                    st.write("**Files by Pattern:**")
+                    clusters = clustering.get('clusters', {})
+                    for cluster_id, files in clusters.items():
+                        pattern_name = patterns.get(str(cluster_id), f"Cluster {cluster_id}")
+                        st.write(f"**{pattern_name}:** {len(files)} files")
+            else:
+                st.info("No patterns identified (repository may be too small)")
+            
+            st.markdown("---")
+            st.write("**Detailed File Groupings:**")
+            
+            clusters = clustering.get('clusters', {})
+            if clusters:
                 for cluster_id, files in clusters.items():
                     pattern_name = patterns.get(str(cluster_id), f"Cluster {cluster_id}")
-                    st.write(f"**{pattern_name}:** {len(files)} files")
-        else:
-            st.info("No patterns identified (repository may be too small)")
-        
-        st.markdown("---")
-        st.write("**Detailed File Groupings:**")
-        
-        clusters = clustering.get('clusters', {})
-        if clusters:
-            for cluster_id, files in clusters.items():
-                pattern_name = patterns.get(str(cluster_id), f"Cluster {cluster_id}")
-                with st.expander(f"{pattern_name} ({len(files)} files)"):
-                    for file in sorted(files)[:20]:  # Show first 20 files
-                        st.write(f"- {file}")
-                    if len(files) > 20:
-                        st.caption(f"... and {len(files) - 20} more files")
-        else:
-            st.info("No file clusters generated")
+                    with st.expander(f"{pattern_name} ({len(files)} files)"):
+                        for file in sorted(files)[:20]:  # Show first 20 files
+                            st.write(f"- {file}")
+                        if len(files) > 20:
+                            st.caption(f"... and {len(files) - 20} more files")
+            else:
+                st.info("No file clusters generated")
     
     # TAB 5: Files
     with tab5:
