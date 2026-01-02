@@ -5,9 +5,9 @@ Free GitHub API (no authentication needed for public repos)
 
 import tempfile
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Tuple, Optional
-import git
 import re
 
 
@@ -59,25 +59,37 @@ class GitHubAnalyzer:
             # Create temporary directory
             temp_dir = tempfile.mkdtemp(prefix=f"repopilot_{repo}_")
             
-            # Clone repository
+            # Clone repository using subprocess (avoiding GitPython timeout issues)
             try:
-                git.Repo.clone_from(
-                    github_url,
-                    temp_dir,
-                    depth=1  # Shallow clone for speed
+                result = subprocess.run(
+                    ['git', 'clone', '--depth=1', '--', github_url, temp_dir],
+                    capture_output=True,
+                    text=True,
+                    timeout=60
                 )
+                
+                if result.returncode != 0:
+                    # Clean up on clone failure
+                    if Path(temp_dir).exists():
+                        shutil.rmtree(temp_dir, ignore_errors=True)
+                    
+                    error_msg = result.stderr.lower()
+                    if "not found" in error_msg or "404" in error_msg:
+                        return False, f"Repository not found: {github_url}", None
+                    elif "private" in error_msg:
+                        return False, "Cannot access private repository without authentication", None
+                    else:
+                        return False, f"Failed to clone repository: {result.stderr}", None
+                
                 return True, f"Cloned {owner}/{repo} successfully", temp_dir
-            except git.GitCommandError as e:
-                # Clean up on clone failure
+            except subprocess.TimeoutExpired:
                 if Path(temp_dir).exists():
                     shutil.rmtree(temp_dir, ignore_errors=True)
-                
-                if "not found" in str(e).lower() or "404" in str(e):
-                    return False, f"Repository not found: {github_url}", None
-                elif "private" in str(e).lower():
-                    return False, "Cannot access private repository without authentication", None
-                else:
-                    return False, f"Failed to clone repository: {str(e)}", None
+                return False, "Repository clone timed out (taking too long)", None
+            except Exception as e:
+                if Path(temp_dir).exists():
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                return False, f"Error during GitHub integration: {str(e)}", None
         
         except Exception as e:
             return False, f"Error during GitHub integration: {str(e)}", None
