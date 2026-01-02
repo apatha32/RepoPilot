@@ -64,8 +64,7 @@ class GitHubAnalyzer:
                 git.Repo.clone_from(
                     github_url,
                     temp_dir,
-                    depth=1,  # Shallow clone for speed
-                    timeout=30
+                    depth=1  # Shallow clone for speed
                 )
                 return True, f"Cloned {owner}/{repo} successfully", temp_dir
             except git.GitCommandError as e:
