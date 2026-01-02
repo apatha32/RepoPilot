@@ -1,6 +1,7 @@
 """
 RepoPilot Dashboard - Streamlit UI for Repository Analysis
 Free, open-source, deployable on Streamlit Cloud
+Supports both local paths and GitHub repository URLs
 """
 
 import streamlit as st
@@ -15,6 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'analysis-engine'))
 from parser import RepositoryParser
 from dependency_mapper import DependencyMapper
 from summarizer import Summarizer
+from github_integration import GitHubAnalyzer
 
 # Try to import clustering (optional - gracefully falls back if ML dependencies unavailable)
 try:
@@ -34,34 +36,77 @@ st.set_page_config(
 )
 
 st.title("[REPO] RepoPilot - Code Repository Intelligence")
-st.markdown("Analyze GitHub repositories without API keys. Completely free and open-source.")
+st.markdown("Analyze GitHub repositories or local code instantly. Completely free and open-source.")
 
 # Sidebar controls
 st.sidebar.header("Repository Analysis")
 analysis_mode = st.sidebar.radio(
     "Select Analysis Mode",
-    ["Local Path", "Analyze Example"]
+    ["Local Path", "GitHub URL", "Analyze Example"]
 )
 
-if analysis_mode == "Local Path":
+if analysis_mode == "GitHub URL":
+    repo_url = st.sidebar.text_input(
+        "Enter GitHub repository URL:",
+        value="https://github.com/user/repo",
+        help="Example: https://github.com/torvalds/linux"
+    )
+    repo_path = None  # Will be set after cloning
+elif analysis_mode == "Local Path":
     repo_path = st.sidebar.text_input(
         "Enter local repository path:",
         value=".",
         help="Full path to the repository you want to analyze"
     )
+    repo_url = None
 else:
     repo_path = "."
+    repo_url = None
     st.sidebar.info("Using current RepoPilot repository as example")
 
 # Main analysis function
-def run_analysis(path):
-    """Run complete analysis pipeline"""
+def run_analysis(path: str, github_url: str = None):
+    """Run complete analysis pipeline
+    
+    Args:
+        path: Local file path or None if using GitHub URL
+        github_url: GitHub repository URL or None if using local path
+    """
+    temp_github_path = None
+    
     try:
+        # Handle GitHub URL
+        if github_url:
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            status_text.text("Cloning GitHub repository...")
+            progress_bar.progress(10)
+            
+            success, message, temp_path = GitHubAnalyzer.clone_repository(github_url)
+            
+            if not success:
+                st.error(f"GitHub Clone Failed: {message}")
+                return None
+            
+            temp_github_path = temp_path
+            path = temp_path
+            
+            status_text.text("Repository cloned successfully. Analyzing...")
+            progress_bar.progress(15)
+        
+        # Check path exists
         if not Path(path).exists():
             st.error(f"Path not found: {path}")
             return None
         
-        # Create progress bar
+        # Create progress bar if not already created
+        if not github_url:
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            progress_bar.progress(15)
+        
+        # Parse repository
         progress_bar = st.progress(0)
         status_text = st.empty()
         
@@ -115,11 +160,22 @@ def run_analysis(path):
         progress_bar.progress(100)
         status_text.text("Analysis complete!")
         
+        # Add GitHub info to metadata if analyzing GitHub repo
+        if github_url:
+            results['metadata']['github_url'] = github_url
+            repo_info = GitHubAnalyzer.get_repo_info(github_url)
+            results['metadata'].update(repo_info)
+        
         return results
     
     except Exception as e:
         st.error(f"Error during analysis: {str(e)}")
         return None
+    
+    finally:
+        # Clean up temporary GitHub clone directory
+        if temp_github_path:
+            GitHubAnalyzer.cleanup_temp_directory(temp_github_path)
 
 # Run analysis button
 col1, col2 = st.columns([3, 1])
@@ -130,7 +186,13 @@ with col2:
 
 results = None
 if run_button:
-    results = run_analysis(repo_path)
+    if analysis_mode == "GitHub URL":
+        if not repo_url or not GitHubAnalyzer.validate_github_url(repo_url):
+            st.error("Please enter a valid GitHub URL (e.g., https://github.com/user/repo)")
+        else:
+            results = run_analysis(path=None, github_url=repo_url)
+    else:
+        results = run_analysis(path=repo_path, github_url=None)
 
 if results:
     # Display results in tabs (conditionally include Architecture Patterns tab)
@@ -147,6 +209,11 @@ if results:
     # TAB 1: Overview
     with tab1:
         st.subheader("Repository Overview")
+        
+        # Show GitHub info if available
+        if 'github_url' in results['metadata']:
+            st.info(f"Analyzing GitHub repository: [{results['metadata']['owner']}/{results['metadata']['name']}]({results['metadata']['github_url']})")
+        
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
