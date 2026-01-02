@@ -3,6 +3,7 @@ GitHub Integration - Clone and analyze GitHub repositories
 Free GitHub API (no authentication needed for public repos)
 """
 
+import os
 import tempfile
 import shutil
 import subprocess
@@ -61,11 +62,17 @@ class GitHubAnalyzer:
             
             # Clone repository using subprocess (avoiding GitPython timeout issues)
             try:
+                # Set environment to disable authentication prompts and use HTTPS
+                env = os.environ.copy()
+                env['GIT_TERMINAL_PROMPT'] = '0'
+                env['GIT_ASKPASS'] = 'echo'
+                
                 result = subprocess.run(
                     ['git', 'clone', '--depth=1', '--', github_url, temp_dir],
                     capture_output=True,
                     text=True,
-                    timeout=60
+                    timeout=60,
+                    env=env
                 )
                 
                 if result.returncode != 0:
