@@ -432,7 +432,8 @@ elif feature == "Comparison Tool":
                     st.bar_chart(lang_data2)
 
 results = None
-if feature == "Single Repo Analysis"    if run_button:
+if feature == "Single Repo Analysis":
+    if run_button:
         if analysis_mode == "GitHub URL":
             if not repo_url or not GitHubAnalyzer.validate_github_url(repo_url):
                 st.error("Please enter a valid GitHub URL (e.g., https://github.com/user/repo)")
