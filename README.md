@@ -74,7 +74,7 @@ New engineers joining codebases waste **1-2 weeks** understanding:
 - [x] Language detection and file statistics
 - [x] Dependency graph mapping and hot-spot identification
 - [x] Key file identification (config, setup, main entry points)
-- [x] Interactive Streamlit dashboard with 6 tabs
+- [x] Interactive Streamlit dashboard with 6+ analysis tabs
 - [x] Zero API costs - works 100% offline
 
 ### Enhanced Features
@@ -82,6 +82,14 @@ New engineers joining codebases waste **1-2 weeks** understanding:
 - [x] **Local Path Analysis** - Analyze any local repository
 - [x] **Architecture Patterns** - ML-based code clustering (optional)
 - [x] **Dependency Visualization** - Network graph analysis
+
+### Phase 1.5 Features (Batch Processing & CI/CD)
+- [x] **Batch Analysis** - Upload CSV with multiple repo URLs, analyze all in sequence
+- [x] **Results Export** - Download results as JSON or CSV
+- [x] **GitHub Actions Integration** - Auto-generate CI/CD workflows for:
+  - PR analysis (auto-comment results on pull requests)
+  - Scheduled analysis (daily repo analysis with HTML reports)
+- [x] **Repository Comparison** - Compare two repos side-by-side with metrics and charts
 
 ### Supported Languages
 Python, JavaScript, TypeScript, Java, Go, Rust, C++, C, C#, PHP, Ruby, Kotlin, Scala, Swift, Shell/Bash, SQL, JSON, YAML, Markdown, HTML, CSS, and more.
@@ -127,14 +135,37 @@ JSON Analysis Results
 
 ---
 
-## Dashboard Tabs
+## Dashboard Features
 
-1. **Overview** - High-level repository statistics, GitHub metadata (if from GitHub URL)
-2. **Structure** - Language distribution, file type breakdown, directory hierarchy
-3. **Dependencies** - Dependency graph metrics, hot spots, import patterns
-4. **Architecture Patterns** - ML-based code clustering and pattern identification (optional)
-5. **Files** - Searchable file listing with language filtering and metadata
-6. **Configuration** - Key files, setup files, raw analysis data export
+### 4 Main Modes
+
+1. **Single Repo Analysis** (Default)
+   - Analyze one repository at a time
+   - 6 interactive analysis tabs:
+     * Overview - Statistics and metadata
+     * Structure - Language distribution and organization
+     * Dependencies - Code relationships and hot spots
+     * Architecture Patterns - ML-based clustering (optional)
+     * Files - Searchable file listing
+     * Configuration - Key files and settings
+
+2. **Batch Analysis** 🔄
+   - Upload CSV with multiple repository URLs
+   - Analyze all repos sequentially
+   - Export results as JSON or CSV
+   - Perfect for comparing multiple projects
+
+3. **GitHub Actions** ⚙️
+   - PR Analysis Workflow - Auto-analyzes changed files, comments results on PRs
+   - Scheduled Analysis - Daily full repository analysis with HTML reports
+   - Download ready-to-use workflow files
+   - Setup: Copy file to `.github/workflows/`, commit, done
+
+4. **Repository Comparison** 🔍
+   - Compare 2 repositories side-by-side
+   - Metrics comparison (files, languages, dependencies)
+   - Language distribution charts
+   - Works with GitHub URLs or local paths
 
 ---
 
@@ -175,28 +206,94 @@ pip install scikit-learn numpy
 
 ## Usage
 
-### Analyzing GitHub Repositories
+### Single Repository Analysis
 
-1. Open RepoPilot (local or web version)
-2. Select **"GitHub URL"** in sidebar
-3. Enter a GitHub repository URL: `https://github.com/torvalds/linux`
+#### Analyzing GitHub Repositories
+1. Open RepoPilot dashboard
+2. Select **"Single Repo Analysis"** mode
+3. Select **"GitHub URL"** 
+4. Paste URL: `https://github.com/facebook/react`
+5. Click **"Analyze Repository"**
+
+#### Analyzing Local Repositories
+1. Select **"Single Repo Analysis"** mode
+2. Select **"Local Path"**
+3. Enter path: `/Users/username/Desktop/my-project`
 4. Click **"Analyze Repository"**
-5. App clones, analyzes, and displays results
-6. Temporary files automatically cleaned up
 
-### Analyzing Local Repositories
-
-1. Select **"Local Path"** in sidebar
-2. Enter full path: `/Users/username/Desktop/my-project`
-3. Click **"Analyze Repository"**
-4. Results display immediately
-
-### Command Line Usage
-
+#### Command Line Usage
 ```bash
 cd analysis-engine
 python main.py /path/to/repo output.json
 ```
+
+### Batch Analysis (Multiple Repos)
+
+1. Select **"Batch Analysis"** mode
+2. Create CSV file with columns: `url,name,description`
+   ```csv
+   url,name,description
+   https://github.com/facebook/react,React,UI library
+   https://github.com/nodejs/node,Node.js,JavaScript runtime
+   https://github.com/torvalds/linux,Linux,OS kernel
+   ```
+3. Upload CSV file in the app
+4. Click **"Start Batch Analysis"**
+5. Export results as **JSON** (full data) or **CSV** (summary)
+
+**Use Cases:**
+- Compare architecture across multiple projects
+- Analyze team's repositories
+- Generate reports for stakeholder presentations
+- Track codebase metrics over time
+
+### GitHub Actions Integration
+
+Auto-analyze your repositories with GitHub Actions workflows.
+
+#### PR Analysis Workflow
+- Automatically analyzes every PR
+- Comments results directly on PRs
+- Shows file counts, languages, dependencies
+- Helps maintain code quality standards
+
+**Setup (2 minutes):**
+1. Go to RepoPilot dashboard
+2. Select **"GitHub Actions"** mode
+3. Choose **"PR Analysis"** workflow
+4. Click **"Download pr-analysis.yml"**
+5. Create `.github/workflows/pr-analysis.yml` in your repo
+6. Paste content and commit
+7. Done! Workflow runs on next PR
+
+#### Scheduled Analysis Workflow
+- Analyzes entire repository daily
+- Generates HTML report
+- Uploads results as artifact
+- Track metrics over time
+
+**Same setup process**, choose "Scheduled Analysis" instead.
+
+### Repository Comparison
+
+Compare two repositories side-by-side.
+
+1. Select **"Comparison Tool"** mode
+2. Choose type for Repo 1: GitHub URL or Local Path
+3. Choose type for Repo 2: GitHub URL or Local Path
+4. Enter repository details
+5. Click **"Compare Repositories"**
+
+**Metrics Compared:**
+- Total files and directories
+- Primary programming language
+- Language distribution
+- Dependency counts and density
+
+**Example:**
+- Compare React vs Vue.js architecture
+- Compare your project with industry benchmarks
+- Analyze team repositories for consistency
 
 ---
 
@@ -381,26 +478,37 @@ RepoPilot is designed with zero-cost operation:
 
 ## Roadmap
 
-### Phase 1 (Complete)
+### Phase 1 (Complete) ✅
 - [x] Repository structure analysis
 - [x] Dependency graph mapping
 - [x] Key file identification
-- [x] Streamlit dashboard
+- [x] Streamlit dashboard (6 analysis tabs)
 - [x] ML-based clustering
 - [x] GitHub URL support
 - [x] 23 unit tests (100% pass)
 
+### Phase 1.5 (Complete) ✅
+- [x] Batch analysis (CSV upload, multi-repo)
+- [x] Results export (JSON/CSV)
+- [x] GitHub Actions workflow generation
+- [x] PR analysis workflow (auto-comment on PRs)
+- [x] Scheduled analysis workflow (daily reports)
+- [x] Repository comparison tool
+- [x] Enterprise-ready multi-repo support
+
 ### Phase 2 (Planned)
-- [ ] REST API backend (Node.js)
+- [ ] REST API backend (Node.js/Express)
 - [ ] Database persistence (PostgreSQL)
-- [ ] Multi-user support
+- [ ] Multi-user support with authentication
 - [ ] Saved analysis history
 - [ ] Custom pattern definitions
+- [ ] Scheduled analysis executor
 
 ### Phase 3 (Future)
 - [ ] React web UI
-- [ ] Advanced visualizations
+- [ ] Advanced visualizations (D3.js)
 - [ ] Code search functionality
+- [ ] Mobile app support
 - [ ] Private repository support
 
 ---
