@@ -2,6 +2,7 @@
 RepoPilot Dashboard - Streamlit UI for Repository Analysis
 Free, open-source, deployable on Streamlit Cloud
 Supports both local paths and GitHub repository URLs
+Includes batch analysis, exports, CI/CD integration
 """
 
 import streamlit as st
@@ -9,6 +10,8 @@ import json
 import os
 import sys
 from pathlib import Path
+import io
+import csv
 
 # Add analysis-engine to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'analysis-engine'))
@@ -17,6 +20,8 @@ from parser import RepositoryParser
 from dependency_mapper import DependencyMapper
 from summarizer import Summarizer
 from github_integration import GitHubAnalyzer
+from batch_processor import BatchProcessor
+from github_actions_generator import GitHubActionsGenerator
 
 # Try to import clustering (optional - gracefully falls back if ML dependencies unavailable)
 try:
@@ -40,29 +45,42 @@ st.markdown("Analyze GitHub repositories or local code instantly. Completely fre
 
 # Sidebar controls
 st.sidebar.header("Repository Analysis")
-analysis_mode = st.sidebar.radio(
-    "Select Analysis Mode",
-    ["Local Path", "GitHub URL", "Analyze Example"]
+
+# Main feature selector
+feature = st.sidebar.radio(
+    "Select Feature",
+    ["Single Repo Analysis", "Batch Analysis", "GitHub Actions", "Comparison Tool"]
 )
 
-if analysis_mode == "GitHub URL":
-    repo_url = st.sidebar.text_input(
-        "Enter GitHub repository URL:",
-        value="https://github.com/user/repo",
-        help="Example: https://github.com/torvalds/linux"
+# Single Repo Analysis Mode
+if feature == "Single Repo Analysis":
+    analysis_mode = st.sidebar.radio(
+        "Select Analysis Mode",
+        ["Local Path", "GitHub URL", "Analyze Example"]
     )
-    repo_path = None  # Will be set after cloning
-elif analysis_mode == "Local Path":
-    repo_path = st.sidebar.text_input(
-        "Enter local repository path:",
-        value=".",
-        help="Full path to the repository you want to analyze"
-    )
-    repo_url = None
+
+    if analysis_mode == "GitHub URL":
+        repo_url = st.sidebar.text_input(
+            "Enter GitHub repository URL:",
+            value="https://github.com/user/repo",
+            help="Example: https://github.com/torvalds/linux"
+        )
+        repo_path = None  # Will be set after cloning
+    elif analysis_mode == "Local Path":
+        repo_path = st.sidebar.text_input(
+            "Enter local repository path:",
+            value=".",
+            help="Full path to the repository you want to analyze"
+        )
+        repo_url = None
+    else:
+        repo_path = "."
+        repo_url = None
+        st.sidebar.info("Using current RepoPilot repository as example")
 else:
-    repo_path = "."
     repo_url = None
-    st.sidebar.info("Using current RepoPilot repository as example")
+    repo_path = None
+    analysis_mode = None
 
 # Main analysis function
 def run_analysis(path: str, github_url: str = None):
@@ -177,25 +195,253 @@ def run_analysis(path: str, github_url: str = None):
         if temp_github_path:
             GitHubAnalyzer.cleanup_temp_directory(temp_github_path)
 
-# Run analysis button
-col1, col2 = st.columns([3, 1])
-with col1:
-    st.subheader("Repository Analysis")
-with col2:
-    run_button = st.button("Analyze Repository", type="primary")
+# Feature-specific UI
+if feature == "Single Repo Analysis":
+    # Run analysis button
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.subheader("Repository Analysis")
+    with col2:
+        run_button = st.button("Analyze Repository", type="primary")
+
+    results = None
+    if run_button:
+        if analysis_mode == "GitHub URL":
+            if not repo_url or not GitHubAnalyzer.validate_github_url(repo_url):
+                st.error("Please enter a valid GitHub URL (e.g., https://github.com/user/repo)")
+            else:
+                results = run_analysis(path=None, github_url=repo_url)
+        else:
+            results = run_analysis(path=repo_path, github_url=None)
+
+elif feature == "Batch Analysis":
+    st.subheader("🔄 Batch Repository Analysis")
+    st.write("Analyze multiple repositories at once by uploading a CSV file.")
+    
+    # CSV template
+    with st.expander("📋 CSV Format Guide"):
+        st.write("Your CSV file should have these columns:")
+        st.code("""url,name,description
+https://github.com/facebook/react,React,JavaScript UI library
+https://github.com/torvalds/linux,Linux,Operating system kernel""", language="csv")
+    
+    # File uploader
+    uploaded_file = st.file_uploader("Upload CSV file", type=['csv'])
+    
+    if uploaded_file:
+        csv_content = uploaded_file.read().decode('utf-8')
+        is_valid, error_msg, repos = BatchProcessor.validate_csv(csv_content)
+        
+        if not is_valid:
+            st.error(f"CSV Validation Error: {error_msg}")
+        else:
+            st.success(f"✅ Found {len(repos)} valid repositories")
+            
+            # Show repos to be analyzed
+            with st.expander("Repositories to analyze"):
+                for repo in repos:
+                    st.write(f"- **{repo['name']}**: {repo['url']}")
+            
+            if st.button("Start Batch Analysis", type="primary"):
+                progress_bar = st.progress(0)
+                status_container = st.empty()
+                results_container = st.empty()
+                
+                def progress_callback(msg):
+                    status_container.write(msg)
+                
+                # Run batch analysis
+                batch_results = BatchProcessor.process_batch(repos, progress_callback)
+                progress_bar.progress(100)
+                
+                st.subheader("Batch Analysis Results")
+                
+                # Summary stats
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Analyzed", batch_results['total_repos'])
+                with col2:
+                    st.metric("Successful", batch_results['successful'])
+                with col3:
+                    st.metric("Failed", batch_results['failed'])
+                
+                # Results table
+                st.write("### Analysis Summary")
+                summary_data = []
+                for analysis in batch_results['analyses']:
+                    summary_data.append({
+                        'Repository': analysis.get('repo', analysis['url'].split('/')[-1]),
+                        'Status': 'Success' if analysis['success'] else 'Failed',
+                        'Files': analysis['metadata']['total_files'] if analysis['success'] else 'N/A',
+                        'Language': analysis['metadata']['primary_language'] if analysis['success'] else 'N/A',
+                        'Dependencies': analysis['dependencies']['total_edges'] if analysis['success'] else 'N/A'
+                    })
+                
+                st.dataframe(summary_data, use_container_width=True)
+                
+                # Export options
+                st.write("### Export Results")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    json_export = BatchProcessor.export_to_json(batch_results)
+                    st.download_button(
+                        label="📥 Download as JSON",
+                        data=json_export,
+                        file_name="batch-analysis-results.json",
+                        mime="application/json"
+                    )
+                
+                with col2:
+                    csv_export = BatchProcessor.export_to_csv(batch_results)
+                    st.download_button(
+                        label="📥 Download as CSV",
+                        data=csv_export,
+                        file_name="batch-analysis-results.csv",
+                        mime="text/csv"
+                    )
+
+elif feature == "GitHub Actions":
+    st.subheader("⚙️ GitHub Actions Integration")
+    st.write("Auto-analyze your repositories with GitHub Actions. Select a workflow template:")
+    
+    workflows = GitHubActionsGenerator.get_workflow_files()
+    selected_workflow = st.radio(
+        "Select workflow type",
+        list(workflows.keys()),
+        format_func=lambda x: workflows[x]['name']
+    )
+    
+    workflow_data = workflows[selected_workflow]
+    
+    st.write(f"### {workflow_data['name']}")
+    st.write(workflow_data['description'])
+    
+    # Instructions
+    with st.expander("📖 Setup Instructions"):
+        st.markdown("""
+        1. Create a new file in your repository:
+           `.github/workflows/""" + selected_workflow + """`
+        
+        2. Copy the workflow code below into that file
+        
+        3. Commit and push to GitHub
+        
+        4. The workflow will automatically run based on the trigger
+        
+        5. Check the Actions tab in your GitHub repository to see results
+        """)
+    
+    # Display workflow
+    st.write("### Workflow Code")
+    st.code(workflow_data['content'], language='yaml')
+    
+    # Download button
+    st.download_button(
+        label=f"📥 Download {selected_workflow}",
+        data=workflow_data['content'],
+        file_name=selected_workflow,
+        mime="text/plain"
+    )
+
+elif feature == "Comparison Tool":
+    st.subheader("🔍 Repository Comparison")
+    st.write("Compare two repositories side by side.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        repo1_mode = st.radio("Repository 1 Type", ["GitHub URL", "Local Path"], key="repo1")
+        if repo1_mode == "GitHub URL":
+            repo1_url = st.text_input("Repo 1 GitHub URL:", value="https://github.com/facebook/react", key="repo1_url")
+            repo1_path = None
+        else:
+            repo1_path = st.text_input("Repo 1 Local Path:", value=".", key="repo1_path")
+            repo1_url = None
+    
+    with col2:
+        repo2_mode = st.radio("Repository 2 Type", ["GitHub URL", "Local Path"], key="repo2")
+        if repo2_mode == "GitHub URL":
+            repo2_url = st.text_input("Repo 2 GitHub URL:", value="https://github.com/nodejs/node", key="repo2_url")
+            repo2_path = None
+        else:
+            repo2_path = st.text_input("Repo 2 Local Path:", value=".", key="repo2_path")
+            repo2_url = None
+    
+    if st.button("Compare Repositories", type="primary"):
+        # Analyze both repos
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.info("Analyzing Repository 1...")
+            results1 = run_analysis(
+                path=repo1_path if repo1_mode == "Local Path" else None,
+                github_url=repo1_url if repo1_mode == "GitHub URL" else None
+            )
+        
+        with col2:
+            st.info("Analyzing Repository 2...")
+            results2 = run_analysis(
+                path=repo2_path if repo2_mode == "Local Path" else None,
+                github_url=repo2_url if repo2_mode == "GitHub URL" else None
+            )
+        
+        if results1 and results2:
+            st.subheader("Comparison Results")
+            
+            # Comparison table
+            comparison_data = {
+                'Metric': [
+                    'Total Files',
+                    'Total Directories',
+                    'Primary Language',
+                    'Dependencies (Edges)',
+                    'Dependency Density'
+                ],
+                'Repository 1': [
+                    results1['structure']['total_files'],
+                    results1['structure']['total_directories'],
+                    results1['structure'].get('primary_language', 'Unknown'),
+                    results1['dependencies'].get('edges', 0),
+                    round(results1['dependencies'].get('density', 0), 3)
+                ],
+                'Repository 2': [
+                    results2['structure']['total_files'],
+                    results2['structure']['total_directories'],
+                    results2['structure'].get('primary_language', 'Unknown'),
+                    results2['dependencies'].get('edges', 0),
+                    round(results2['dependencies'].get('density', 0), 3)
+                ]
+            }
+            
+            st.dataframe(comparison_data, use_container_width=True)
+            
+            # Language comparison
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("### Languages - Repo 1")
+                lang_data1 = results1['structure'].get('language_distribution', {})
+                if lang_data1:
+                    st.bar_chart(lang_data1)
+            
+            with col2:
+                st.write("### Languages - Repo 2")
+                lang_data2 = results2['structure'].get('language_distribution', {})
+                if lang_data2:
+                    st.bar_chart(lang_data2)
 
 results = None
-if run_button:
-    if analysis_mode == "GitHub URL":
-        if not repo_url or not GitHubAnalyzer.validate_github_url(repo_url):
-            st.error("Please enter a valid GitHub URL (e.g., https://github.com/user/repo)")
+if feature == "Single Repo Analysis"    if run_button:
+        if analysis_mode == "GitHub URL":
+            if not repo_url or not GitHubAnalyzer.validate_github_url(repo_url):
+                st.error("Please enter a valid GitHub URL (e.g., https://github.com/user/repo)")
+            else:
+                results = run_analysis(path=None, github_url=repo_url)
         else:
-            results = run_analysis(path=None, github_url=repo_url)
-    else:
-        results = run_analysis(path=repo_path, github_url=None)
+            results = run_analysis(path=repo_path, github_url=None)
 
-if results:
-    # Display results in tabs (conditionally include Architecture Patterns tab)
+if results:    # Display results in tabs (conditionally include Architecture Patterns tab)
     if clustering_available and results.get('clustering'):
         tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
             ["Overview", "Structure", "Dependencies", "Architecture Patterns", "Files", "Configuration"]
